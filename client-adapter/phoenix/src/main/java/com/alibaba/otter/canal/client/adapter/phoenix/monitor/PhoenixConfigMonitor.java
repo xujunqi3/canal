@@ -20,9 +20,9 @@ import com.alibaba.otter.canal.client.adapter.phoenix.config.MirrorDbConfig;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 import com.alibaba.otter.canal.client.adapter.support.Util;
 
-public class RdbConfigMonitor {
+public class PhoenixConfigMonitor {
 
-    private static final Logger   logger      = LoggerFactory.getLogger(RdbConfigMonitor.class);
+    private static final Logger   logger      = LoggerFactory.getLogger(PhoenixConfigMonitor.class);
 
     private static final String   adapterName = "phoenix";
 

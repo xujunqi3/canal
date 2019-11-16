@@ -23,12 +23,12 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
  * @author rewerma @ 2018-11-7
  * @version 1.0.0
  */
-public class RdbEtlService extends AbstractEtlService {
+public class PhoenixEtlService extends AbstractEtlService {
 
     private DataSource    targetDS;
     private MappingConfig config;
 
-    public RdbEtlService(DataSource targetDS, MappingConfig config){
+    public PhoenixEtlService(DataSource targetDS, MappingConfig config){
         super("PHOENIX", config);
         this.targetDS = targetDS;
         this.config = config;

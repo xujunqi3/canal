@@ -18,10 +18,10 @@ import com.alibaba.otter.canal.client.adapter.OuterAdapter;
 import com.alibaba.otter.canal.client.adapter.phoenix.config.ConfigLoader;
 import com.alibaba.otter.canal.client.adapter.phoenix.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.phoenix.config.MirrorDbConfig;
-import com.alibaba.otter.canal.client.adapter.phoenix.monitor.RdbConfigMonitor;
-import com.alibaba.otter.canal.client.adapter.phoenix.service.RdbEtlService;
-import com.alibaba.otter.canal.client.adapter.phoenix.service.RdbMirrorDbSyncService;
-import com.alibaba.otter.canal.client.adapter.phoenix.service.RdbSyncService;
+import com.alibaba.otter.canal.client.adapter.phoenix.monitor.PhoenixConfigMonitor;
+import com.alibaba.otter.canal.client.adapter.phoenix.service.PhoenixEtlService;
+import com.alibaba.otter.canal.client.adapter.phoenix.service.PhoenixMirrorDbSyncService;
+import com.alibaba.otter.canal.client.adapter.phoenix.service.PhoenixSyncService;
 import com.alibaba.otter.canal.client.adapter.phoenix.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
@@ -38,23 +38,23 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
 @SPI("phoenix")
 public class PhoenixAdapter implements OuterAdapter {
 
-    private static Logger                           logger              = LoggerFactory.getLogger(PhoenixAdapter.class);
+    private static Logger logger = LoggerFactory.getLogger(PhoenixAdapter.class);
 
     // 文件名对应配置
-    private Map<String, Map<String, MappingConfig>> mappingConfigCache  = new ConcurrentHashMap<>();
+    private Map<String, Map<String, MappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();
     // 库名-表名对应配置
-    private Map<String, MappingConfig>              rdbMapping          = new ConcurrentHashMap<>();
+    private Map<String, MappingConfig> rdbMapping = new ConcurrentHashMap<>();
     // 镜像库配置
-    private Map<String, MirrorDbConfig>             mirrorDbConfigCache = new ConcurrentHashMap<>();
+    private Map<String, MirrorDbConfig> mirrorDbConfigCache = new ConcurrentHashMap<>();
 
-    private DruidDataSource                         dataSource;
+    private DruidDataSource dataSource;
 
-    private RdbSyncService                          rdbSyncService;
-    private RdbMirrorDbSyncService                  rdbMirrorDbSyncService;
+    private PhoenixSyncService phoenixSyncService;
+    private PhoenixMirrorDbSyncService phoenixMirrorDbSyncService;
 
-    private RdbConfigMonitor                        rdbConfigMonitor;
+    private PhoenixConfigMonitor phoenixConfigMonitor;
 
-    private Properties                              envProperties;
+    private Properties envProperties;
 
     public Map<String, MappingConfig> getRdbMapping() {
         return rdbMapping;
@@ -80,7 +80,7 @@ public class PhoenixAdapter implements OuterAdapter {
         // 过滤不匹配的key的配置
         rdbMappingTmp.forEach((key, mappingConfig) -> {
             if ((mappingConfig.getOuterAdapterKey() == null && configuration.getKey() == null)
-                || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
+                    || (mappingConfig.getOuterAdapterKey() != null && mappingConfig.getOuterAdapterKey()
                     .equalsIgnoreCase(configuration.getKey()))) {
                 rdbMapping.put(key, mappingConfig);
             }
@@ -97,19 +97,19 @@ public class PhoenixAdapter implements OuterAdapter {
                 String key;
                 if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
                     key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
-                          + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
-                          + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+                            + StringUtils.trimToEmpty(mappingConfig.getGroupId()) + "_"
+                            + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
                 } else {
                     key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "_"
-                          + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
+                            + mappingConfig.getDbMapping().getDatabase() + "-" + mappingConfig.getDbMapping().getTable();
                 }
                 Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(key,
-                    k1 -> new ConcurrentHashMap<>());
+                        k1 -> new ConcurrentHashMap<>());
                 configMap.put(configName, mappingConfig);
             } else {
                 // mirrorDB
                 String key = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "."
-                             + mappingConfig.getDbMapping().getDatabase();
+                        + mappingConfig.getDbMapping().getDatabase();
                 mirrorDbConfigCache.put(key, MirrorDbConfig.create(configName, mappingConfig));
             }
         }
@@ -144,19 +144,19 @@ public class PhoenixAdapter implements OuterAdapter {
         // String commitSize = properties.get("commitSize");
 
         boolean skipDupException = BooleanUtils.toBoolean(configuration.getProperties()
-            .getOrDefault("skipDupException", "true"));
-        rdbSyncService = new RdbSyncService(dataSource,
-            threads != null ? Integer.valueOf(threads) : null,
-            skipDupException);
+                .getOrDefault("skipDupException", "true"));
+        phoenixSyncService = new PhoenixSyncService(dataSource,
+                threads != null ? Integer.valueOf(threads) : null,
+                skipDupException);
 
-        rdbMirrorDbSyncService = new RdbMirrorDbSyncService(mirrorDbConfigCache,
-            dataSource,
-            threads != null ? Integer.valueOf(threads) : null,
-            rdbSyncService.getColumnsTypeCache(),
-            skipDupException);
+        phoenixMirrorDbSyncService = new PhoenixMirrorDbSyncService(mirrorDbConfigCache,
+                dataSource,
+                threads != null ? Integer.valueOf(threads) : null,
+                phoenixSyncService.getColumnsTypeCache(),
+                skipDupException);
 
-        rdbConfigMonitor = new RdbConfigMonitor();
-        rdbConfigMonitor.init(configuration.getKey(), this, envProperties);
+        phoenixConfigMonitor = new PhoenixConfigMonitor();
+        phoenixConfigMonitor.init(configuration.getKey(), this, envProperties);
     }
 
     /**
@@ -170,8 +170,8 @@ public class PhoenixAdapter implements OuterAdapter {
             return;
         }
         try {
-            rdbSyncService.sync(mappingConfigCache, dmls, envProperties);
-            rdbMirrorDbSyncService.sync(dmls);
+            phoenixSyncService.sync(mappingConfigCache, dmls, envProperties);
+            phoenixMirrorDbSyncService.sync(dmls);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -180,7 +180,7 @@ public class PhoenixAdapter implements OuterAdapter {
     /**
      * ETL方法
      *
-     * @param task 任务名, 对应配置名
+     * @param task   任务名, 对应配置名
      * @param params etl筛选条件
      * @return ETL结果
      */
@@ -188,16 +188,16 @@ public class PhoenixAdapter implements OuterAdapter {
     public EtlResult etl(String task, List<String> params) {
         EtlResult etlResult = new EtlResult();
         MappingConfig config = rdbMapping.get(task);
-        RdbEtlService rdbEtlService = new RdbEtlService(dataSource, config);
+        PhoenixEtlService phoenixEtlService = new PhoenixEtlService(dataSource, config);
         if (config != null) {
-            return rdbEtlService.importData(params);
+            return phoenixEtlService.importData(params);
         } else {
             StringBuilder resultMsg = new StringBuilder();
             boolean resSucc = true;
             for (MappingConfig configTmp : rdbMapping.values()) {
                 // 取所有的destination为task的配置
                 if (configTmp.getDestination().equals(task)) {
-                    EtlResult etlRes = rdbEtlService.importData(params);
+                    EtlResult etlRes = phoenixEtlService.importData(params);
                     if (!etlRes.getSucceeded()) {
                         resSucc = false;
                         resultMsg.append(etlRes.getErrorMessage()).append("\n");
@@ -282,12 +282,12 @@ public class PhoenixAdapter implements OuterAdapter {
      */
     @Override
     public void destroy() {
-        if (rdbConfigMonitor != null) {
-            rdbConfigMonitor.destroy();
+        if (phoenixConfigMonitor != null) {
+            phoenixConfigMonitor.destroy();
         }
 
-        if (rdbSyncService != null) {
-            rdbSyncService.close();
+        if (phoenixSyncService != null) {
+            phoenixSyncService.close();
         }
 
         if (dataSource != null) {

@@ -26,20 +26,20 @@ import com.alibaba.otter.canal.client.adapter.support.Dml;
  * @author rewerma 2018-12-12 下午011:23
  * @version 1.0.0
  */
-public class RdbMirrorDbSyncService {
+public class PhoenixMirrorDbSyncService {
 
-    private static final Logger         logger = LoggerFactory.getLogger(RdbMirrorDbSyncService.class);
+    private static final Logger         logger = LoggerFactory.getLogger(PhoenixMirrorDbSyncService.class);
 
     private Map<String, MirrorDbConfig> mirrorDbConfigCache;                                           // 镜像库配置
     private DataSource                  dataSource;
-    private RdbSyncService              rdbSyncService;                                                // rdbSyncService代理
+    private PhoenixSyncService phoenixSyncService;                                                // rdbSyncService代理
 
-    public RdbMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DataSource dataSource,
-                                  Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
-                                  boolean skipDupException){
+    public PhoenixMirrorDbSyncService(Map<String, MirrorDbConfig> mirrorDbConfigCache, DataSource dataSource,
+                                      Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
+                                      boolean skipDupException){
         this.mirrorDbConfigCache = mirrorDbConfigCache;
         this.dataSource = dataSource;
-        this.rdbSyncService = new RdbSyncService(dataSource, threads, columnsTypeCache, skipDupException);
+        this.phoenixSyncService = new PhoenixSyncService(dataSource, threads, columnsTypeCache, skipDupException);
     }
 
     /**
@@ -71,7 +71,7 @@ public class RdbMirrorDbSyncService {
                     logger.debug("DDL: {}", JSON.toJSONString(dml, SerializerFeature.WriteMapNullValue));
                 }
                 executeDdl(mirrorDbConfig, dml);
-                rdbSyncService.getColumnsTypeCache().remove(destination + "." + database + "." + dml.getTable());
+                phoenixSyncService.getColumnsTypeCache().remove(destination + "." + database + "." + dml.getTable());
                 mirrorDbConfig.getTableConfig().remove(dml.getTable()); // 删除对应库表配置
             } else {
                 // DML
@@ -80,7 +80,7 @@ public class RdbMirrorDbSyncService {
             }
         }
         if (!dmlList.isEmpty()) {
-            rdbSyncService.sync(dmlList, dml -> {
+            phoenixSyncService.sync(dmlList, dml -> {
                 MirrorDbConfig mirrorDbConfig = mirrorDbConfigCache.get(dml.getDestination() + "." + dml.getDatabase());
                 if (mirrorDbConfig == null) {
                     return false;
@@ -95,16 +95,16 @@ public class RdbMirrorDbSyncService {
                 if (config.getConcurrent()) {
                     List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
                     singleDmls.forEach(singleDml -> {
-                        int hash = rdbSyncService.pkHash(config.getDbMapping(), singleDml.getData());
-                        RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
-                        rdbSyncService.getDmlsPartition()[hash].add(syncItem);
+                        int hash = phoenixSyncService.pkHash(config.getDbMapping(), singleDml.getData());
+                        PhoenixSyncService.SyncItem syncItem = new PhoenixSyncService.SyncItem(config, singleDml);
+                        phoenixSyncService.getDmlsPartition()[hash].add(syncItem);
                     });
                 } else {
                     int hash = 0;
                     List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
                     singleDmls.forEach(singleDml -> {
-                        RdbSyncService.SyncItem syncItem = new RdbSyncService.SyncItem(config, singleDml);
-                        rdbSyncService.getDmlsPartition()[hash].add(syncItem);
+                        PhoenixSyncService.SyncItem syncItem = new PhoenixSyncService.SyncItem(config, singleDml);
+                        phoenixSyncService.getDmlsPartition()[hash].add(syncItem);
                     });
                 }
                 return true;

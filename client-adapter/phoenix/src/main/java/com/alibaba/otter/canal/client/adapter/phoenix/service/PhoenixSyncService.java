@@ -37,9 +37,9 @@ import com.alibaba.otter.canal.client.adapter.support.Util;
  * @author rewerma 2018-11-7 下午06:45:49
  * @version 1.0.0
  */
-public class RdbSyncService {
+public class PhoenixSyncService {
 
-    private static final Logger               logger  = LoggerFactory.getLogger(RdbSyncService.class);
+    private static final Logger               logger  = LoggerFactory.getLogger(PhoenixSyncService.class);
 
     // 源库表字段类型缓存: instance.schema.table -> <columnName, jdbcType>
     private Map<String, Map<String, Integer>> columnsTypeCache;
@@ -59,13 +59,13 @@ public class RdbSyncService {
         return columnsTypeCache;
     }
 
-    public RdbSyncService(DataSource dataSource, Integer threads, boolean skipDupException){
+    public PhoenixSyncService(DataSource dataSource, Integer threads, boolean skipDupException){
         this(dataSource, threads, new ConcurrentHashMap<>(), skipDupException);
     }
 
     @SuppressWarnings("unchecked")
-    public RdbSyncService(DataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
-                          boolean skipDupException){
+    public PhoenixSyncService(DataSource dataSource, Integer threads, Map<String, Map<String, Integer>> columnsTypeCache,
+                              boolean skipDupException){
         this.columnsTypeCache = columnsTypeCache;
         this.skipDupException = skipDupException;
         try {
@@ -346,7 +346,7 @@ public class RdbSyncService {
         String cacheKey = config.getDestination() + "." + dbMapping.getDatabase() + "." + dbMapping.getTable();
         Map<String, Integer> columnType = columnsTypeCache.get(cacheKey);
         if (columnType == null) {
-            synchronized (RdbSyncService.class) {
+            synchronized (PhoenixSyncService.class) {
                 columnType = columnsTypeCache.get(cacheKey);
                 if (columnType == null) {
                     columnType = new LinkedHashMap<>();
