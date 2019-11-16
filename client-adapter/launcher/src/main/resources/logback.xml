@@ -49,6 +49,11 @@
 		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
+	<logger name="com.alibaba.otter.canal.client.adapter.phoenix" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
 	<logger name="com.alibaba.otter.canal.client.adapter.logger" additivity="false">
 		<level value="DEBUG" />
 		<appender-ref ref="STDOUT"/>

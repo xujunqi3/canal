@@ -6,7 +6,7 @@ concurrent: true
 dbMapping:
   database: mytest
   table: user
-  targetTable: mytest2.user
+  targetTable: mytest.user
   targetPk:
     id: id
 #  mapAll: true

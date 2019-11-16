@@ -29,7 +29,7 @@ canal.conf:
     - groupId: g1
       outerAdapters:
       - name: logger
-      - name: rdb
+      - name: phoenix
         key: phoenix1
         properties:
           jdbc.driverClassName: org.apache.phoenix.jdbc.PhoenixDriver
@@ -37,13 +37,13 @@ canal.conf:
           jdbc.username:
           jdbc.password:
           jdbc.connection-properties: phoenix.schema.isNamespaceMappingEnabled=true;hbase.rpc.timeout=6000000;hbase.client.operation.timeout=6000000
-#      - name: rdb
-#        key: mysql1
-#        properties:
-#          jdbc.driverClassName: com.mysql.jdbc.Driver
-#          jdbc.url: jdbc:mysql://10.50.180.71:3306/mytest?useUnicode=true
-#          jdbc.username: mytest2
-#          jdbc.password: mytest2
+      - name: rdb
+        key: mysql1
+        properties:
+          jdbc.driverClassName: com.mysql.jdbc.Driver
+          jdbc.url: jdbc:mysql://10.50.180.71:3306/mytest?useUnicode=true
+          jdbc.username: mytest2
+          jdbc.password: mytest2
 #      - name: rdb
 #        key: oracle1
 #        properties:

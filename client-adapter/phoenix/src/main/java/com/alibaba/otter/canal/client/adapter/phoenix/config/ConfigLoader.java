@@ -30,7 +30,7 @@ public class ConfigLoader {
 
         Map<String, MappingConfig> result = new LinkedHashMap<>();
 
-        Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("rdb");
+        Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("phoenix");
         configContentMap.forEach((fileName, content) -> {
             MappingConfig config = YmlConfigBinder
                 .bindYmlToObj(null, content, MappingConfig.class, null, envProperties);

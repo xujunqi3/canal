@@ -29,7 +29,7 @@ public class RdbEtlService extends AbstractEtlService {
     private MappingConfig config;
 
     public RdbEtlService(DataSource targetDS, MappingConfig config){
-        super("RDB", config);
+        super("PHOENIX", config);
         this.targetDS = targetDS;
         this.config = config;
     }

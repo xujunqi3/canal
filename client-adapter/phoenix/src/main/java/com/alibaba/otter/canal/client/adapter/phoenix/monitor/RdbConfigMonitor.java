@@ -24,7 +24,7 @@ public class RdbConfigMonitor {
 
     private static final Logger   logger      = LoggerFactory.getLogger(RdbConfigMonitor.class);
 
-    private static final String   adapterName = "rdb";
+    private static final String   adapterName = "phoenix";
 
     private String                key;
 

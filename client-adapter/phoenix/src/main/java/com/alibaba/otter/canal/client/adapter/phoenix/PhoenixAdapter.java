@@ -128,6 +128,7 @@ public class PhoenixAdapter implements OuterAdapter {
         dataSource.setTimeBetweenEvictionRunsMillis(60000);
         dataSource.setMinEvictableIdleTimeMillis(300000);
         dataSource.setUseUnfairLock(true);
+        dataSource.setDefaultAutoCommit(true);
         dataSource.setConnectionProperties(properties.get("jdbc.connection-properties"));
         // List<String> array = new ArrayList<>();
         // array.add("set names utf8mb4;");
