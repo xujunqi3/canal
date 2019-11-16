@@ -220,6 +220,39 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/java</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>../elasticsearch/src/main/resources</directory>
+                <includes>
+                    <include>es/**</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>../hbase/src/main/resources</directory>
+                <includes>
+                    <include>hbase/**</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>../rdb/src/main/resources</directory>
+                <includes>
+                    <include>rdb/**</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>../phoenix/src/main/resources</directory>
+                <includes>
+                    <include>phoenix/**</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 
     <profiles>
