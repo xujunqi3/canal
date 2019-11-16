@@ -8,8 +8,8 @@ spring:
 
 canal.conf:
   mode: tcp # kafka rocketMQ
-  canalServerHost: 127.0.0.1:11111
-#  zookeeperHosts: slave1:2181
+#  canalServerHost: 127.0.0.1:11111
+  zookeeperHosts: zkServer1:2181
 #  mqServers: 127.0.0.1:9092 #or rocketmq
 #  flatMessage: true
   batchSize: 500
@@ -29,13 +29,21 @@ canal.conf:
     - groupId: g1
       outerAdapters:
       - name: logger
+      - name: rdb
+        key: phoenix1
+        properties:
+          jdbc.driverClassName: org.apache.phoenix.jdbc.PhoenixDriver
+          jdbc.url: jdbc:phoenix:zkServer1:2181
+          jdbc.username:
+          jdbc.password:
+          jdbc.connection-properties: phoenix.schema.isNamespaceMappingEnabled=true;hbase.rpc.timeout=6000000;hbase.client.operation.timeout=6000000
 #      - name: rdb
 #        key: mysql1
 #        properties:
 #          jdbc.driverClassName: com.mysql.jdbc.Driver
-#          jdbc.url: jdbc:mysql://127.0.0.1:3306/mytest2?useUnicode=true
-#          jdbc.username: root
-#          jdbc.password: 121212
+#          jdbc.url: jdbc:mysql://10.50.180.71:3306/mytest?useUnicode=true
+#          jdbc.username: mytest2
+#          jdbc.password: mytest2
 #      - name: rdb
 #        key: oracle1
 #        properties:
@@ -54,7 +62,7 @@ canal.conf:
 #          commitSize: 3000
 #      - name: hbase
 #        properties:
-#          hbase.zookeeper.quorum: 127.0.0.1
+#          hbase.zookeeper.quorum: zkServer1
 #          hbase.zookeeper.property.clientPort: 2181
 #          zookeeper.znode.parent: /hbase
 #      - name: es
