@@ -33,7 +33,7 @@ canal.conf:
         key: phoenix1
         properties:
           jdbc.driverClassName: org.apache.phoenix.jdbc.PhoenixDriver
-          jdbc.url: jdbc:phoenix:zkServer1:2181
+          jdbc.url: jdbc:phoenix:hadoop123:2181
           jdbc.username:
           jdbc.password:
           jdbc.connection-properties: phoenix.schema.isNamespaceMappingEnabled=true;hbase.rpc.timeout=6000000;hbase.client.operation.timeout=6000000
